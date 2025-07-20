@@ -1,0 +1,43 @@
+networks:
+  dev0:
+    name: dev0
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "${CROSSDEV_NETWORK_PREFIX:-192.168.11}.0/24"
+          gateway: "${CROSSDEV_NETWORK_PREFIX:-192.168.11}.1"
+
+services:
+  crossdev:
+    container_name: "dev_crossdev"
+    hostname: "dev-crossdev"
+    image: ${CROSSDEV_IMAGE:-luoyuhao0x58/crossdev:latest}
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        CROSSDEV_USER_ID: "${CROSSDEV_USER_ID:-54321}"
+        CROSSDEV_USER_NAME: "${CROSSDEV_USER_NAME:-crossdev}"
+        CROSSDEV_USER_HOME: "${CROSSDEV_USER_HOME:-/home/crossdev}"
+        CROSSDEV_BUILD_CONFIGS: ${CROSSDEV_BUILD_CONFIGS:-}
+    networks:
+      dev0:
+        ipv4_address:
+          "${CROSSDEV_NETWORK_PREFIX:-192.168.11}.254"
+    environment:
+      CROSSDEV_GIT_AUTHOR_NAME: "${CROSSDEV_GIT_AUTHOR_NAME:-}"
+      CROSSDEV_GIT_AUTHOR_EMAIL: "${CROSSDEV_GIT_AUTHOR_EMAIL:-}"
+      CROSSDEV_GIT_SIGNINGKEY: "${CROSSDEV_GIT_SIGNINGKEY:-}"
+    volumes:
+      - type: volume
+        source: data_hostkey
+        target: /etc/ssh/hostkey
+      - type: volume
+        source: data_vscode
+        target: "${CROSSDEV_USER_HOME:-/home/crossdev}/.vscode-server"
+
+volumes:
+  data_hostkey:
+    name: dev_crossdev_hostkey
+  data_vscode:
+    name: dev_crossdev_vscode
