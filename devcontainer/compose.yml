@@ -1,0 +1,43 @@
+networks:
+  dev0:
+    name: dev0
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "${DEVCONTAINER_NETWORK_PREFIX:-192.168.11}.0/24"
+          gateway: "${DEVCONTAINER_NETWORK_PREFIX:-192.168.11}.1"
+
+services:
+  devcontainer:
+    container_name: "devcontainer"
+    hostname: "devcontainer"
+    image: ${DEVCONTAINER_IMAGE:-luoyuhao0x58/devcontainer:latest}
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        DEVCONTAINER_USER_ID: "${DEVCONTAINER_USER_ID:-54321}"
+        DEVCONTAINER_USER_NAME: "${DEVCONTAINER_USER_NAME:-devcontainer}"
+        DEVCONTAINER_USER_HOME: "${DEVCONTAINER_USER_HOME:-/home/devcontainer}"
+        DEVCONTAINER_BUILD_CONFIGS: ${DEVCONTAINER_BUILD_CONFIGS:-}
+    networks:
+      dev0:
+        ipv4_address:
+          "${DEVCONTAINER_NETWORK_PREFIX:-192.168.11}.254"
+    environment:
+      DEVCONTAINER_GIT_AUTHOR_NAME: "${DEVCONTAINER_GIT_AUTHOR_NAME:-}"
+      DEVCONTAINER_GIT_AUTHOR_EMAIL: "${DEVCONTAINER_GIT_AUTHOR_EMAIL:-}"
+      DEVCONTAINER_GIT_SIGNINGKEY: "${DEVCONTAINER_GIT_SIGNINGKEY:-}"
+    volumes:
+      - type: volume
+        source: data_hostkey
+        target: /etc/ssh/hostkey
+      - type: volume
+        source: data_vscode
+        target: "${DEVCONTAINER_USER_HOME:-/home/devcontainer}/.vscode-server"
+
+volumes:
+  data_hostkey:
+    name: devcontainer_hostkey
+  data_vscode:
+    name: devcontainer_vscode
