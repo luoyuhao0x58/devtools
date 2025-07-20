@@ -1,0 +1,1 @@
+alias curl="curl --retry 3 --retry-delay 5"
